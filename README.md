@@ -64,7 +64,7 @@ Get-PSEventScripts -logfile pshellog.evtx
 
 # 2) HELK Python Script
 ## Overview
-This Python Script is designed to be run inside a HELK setup (possibly as a Juypter Notebook).
+This Python Script is designed to be run inside a [HELK (Hunting ELK)](https://github.com/Cyb3rWard0g/HELK) setup (possibly as a Juypter Notebook).
 
 ## Installation
 Use The script in conjunction with a HELK setup, running it either on the Juypter Notebook HELK container,
