@@ -74,8 +74,6 @@ function Get-PSEventScripts {
         [string[]] $ignoreSignatures = @()
         )
 
-    $mappings_file = @{}
-
     # Create output folder if needed
     If (-not (Test-Path $outFolder)) {
         New-Item -ItemType Directory $outFolder
@@ -115,6 +113,9 @@ function Get-PSEventScripts {
         Write-LogInfo $getEventLog
         $events = Get-WinEvent -FilterHashtable $eventFilterHashtable
     }
+
+    # Reverse the Array to go oldeest to newest in order
+    [array]::Reverse($events)
 
     Write-LogInfo "Parsing Events"
     foreach ($event in $events)
@@ -158,12 +159,13 @@ function Get-PSEventScripts {
         # The first and last 3 lines of the Message aren't part of the script, so remove them
         $messageplit = $event.Message.Split("`n")
         $script = $messageplit[1..($messageplit.Length-3)]  -join "`n"
-        $script.TrimEnd() | Out-File "$outFolder/$script_id.ps1"
-        
-        If (-not $script_path -eq "")
-        {
-            $mappings_file[$script_id] = $script_path
+        If ($script_path -eq "") {
+            $outFilename = "$script_id.ps1"
+        } else {
+            $outFilename = Split-Path -Path $script_path -Leaf
         }
+
+        $script.TrimEnd() | Add-Content "$outFolder/$outFilename"
     }
 
     # Delete duplicate files
@@ -207,18 +209,6 @@ function Get-PSEventScripts {
     }
 
     Write-LogInfo "Writing file summaries to csv"
-    # Log Mappings to a file
-    Remove-Item "$outFolder/fileMappings.csv" -ErrorAction Ignore
-    foreach ($guid in $mappings_file.Keys)
-    {
-        # If we still have a file then add it to the list
-        if (test-path "$outFolder/$guid.ps1")
-        {
-            $filename = $mappings_file[$guid]
-            $text = ("$guid,$filename")
-            ("$guid,$filename") | Out-File -Append "$outFolder\fileMappings.csv"
-        }
-    }
     Write-LogInfo "Details on any scripts run from a file is located in $outFolder\fileMappings.csv"
 }
 
